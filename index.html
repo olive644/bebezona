@@ -8,7 +8,7 @@
   :root{
     --bg-1:#0b0b0d;
     --bg-2:#19171a;
-    --accent:#d92b3a; /* vermelho System-ish */
+    --accent:#d92b3a;
     --metal:#c3bfc3;
     --text:#f3e9ea;
   }
@@ -24,8 +24,6 @@
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
   }
-
-  /* Container */
   .stage{
     width: 860px;
     max-width: calc(100% - 48px);
@@ -35,8 +33,6 @@
     gap:28px;
     flex-wrap:wrap;
   }
-
-  /* Ticket */
   .ticket {
     position: relative;
     width: 420px;
@@ -44,9 +40,7 @@
     border-radius: 14px;
     background: linear-gradient(135deg, rgba(217,43,58,0.12), rgba(0,0,0,0.4));
     border: 2px solid rgba(217,43,58,0.9);
-    box-shadow:
-      0 8px 30px rgba(0,0,0,0.7),
-      inset 0 1px 0 rgba(255,255,255,0.03);
+    box-shadow:0 8px 30px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.03);
     padding: 18px;
     display:flex;
     flex-direction:column;
@@ -57,8 +51,6 @@
     transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s;
   }
   .ticket:hover{ transform: translateY(-6px) scale(1.01); box-shadow: 0 18px 50px rgba(0,0,0,0.75); }
-
-  /* Torn perforation circles left/right */
   .ticket::before, .ticket::after{
     content:"";
     position:absolute;
@@ -73,8 +65,6 @@
   }
   .ticket::before{ left:-14px; }
   .ticket::after{ right:-14px; }
-
-  /* Header band */
   .band {
     position:absolute;
     top:12px;
@@ -112,8 +102,6 @@
     text-shadow: 0 2px 0 rgba(0,0,0,0.6);
     pointer-events:none;
   }
-
-  /* Poem area */
   .poema {
     z-index:2;
     width: calc(100% - 48px);
@@ -133,8 +121,6 @@
   }
   .poema.show { opacity:1; transform:translateY(0); }
   .poema.hidden { opacity:0; transform:translateY(8px); }
-
-  /* small label hint */
   .hint {
     position:absolute;
     bottom:8px;
@@ -144,8 +130,6 @@
     color: rgba(255,255,255,0.7);
     letter-spacing:1px;
   }
-
-  /* brilho */
   .brilho {
     position:absolute;
     inset:0;
@@ -158,19 +142,13 @@
   }
   .brilho.active { opacity:1; animation:glow 2s infinite alternate; }
   @keyframes glow { from{ filter:blur(0px) } to{ filter:blur(3px) } }
-
-  /* Rasgo animation (ticket sobe/ruge e some) */
-  .rasgando {
-    animation: rasgar 2s cubic-bezier(.2,.9,.3,1) forwards;
-  }
+  .rasgando { animation: rasgar 2s cubic-bezier(.2,.9,.3,1) forwards; }
   @keyframes rasgar{
     0%   { transform: translateY(0) rotate(0) scale(1); opacity:1; filter: drop-shadow(0 8px 18px rgba(0,0,0,0.6)); }
     40%  { transform: translateY(-18px) rotate(-6deg) scale(1.02); }
     70%  { transform: translateY(10vh) rotate(10deg) scale(0.95); opacity:0.9; }
     100% { transform: translateY(140vh) rotate(18deg) scale(0.6); opacity:0; }
   }
-
-  /* Hearts / embers */
   .ember {
     position:fixed;
     pointer-events:none;
@@ -185,8 +163,6 @@
     50%{ transform: translateY(-70px) scale(1.1) rotate(-6deg); opacity:0.9; }
     100%{ transform: translateY(-160px) scale(1.3) rotate(8deg); opacity:0; filter: blur(1px); }
   }
-
-  /* Endcard after the ticket goes */
   .endcard {
     width:420px;
     height:210px;
@@ -209,10 +185,16 @@
   }
   .endcard.show { opacity:1; transform: scale(1); }
 
-  /* small responsive */
+  /* RESPONSIVIDADE PARA CELULAR */
   @media(max-width:500px){
-    .ticket, .endcard { width:320px; height:200px; }
-    .poema { font-size:14px; line-height:1.2; }
+    .ticket, .endcard {
+      width:90%;
+      height:auto;
+      min-height:200px;
+    }
+    .poema { font-size:14px; line-height:1.3; padding:8px 10px; }
+    .band .left, .band .right { font-size:10px; gap:4px; }
+    .brand { font-size:16px; letter-spacing:2px; }
   }
 </style>
 </head>
@@ -224,7 +206,6 @@
         <div class="right">VIP: BEBEZONA</div>
       </div>
       <div class="brand">EDIÇÃO ESPECIAL</div>
-
       <div class="poema hidden" id="poema">ABRA O INGRESSO.</div>
       <div class="brilho" id="brilho"></div>
       <div class="hint">AERIALS - SYSTEM OF A DOWN.</div>
@@ -238,11 +219,9 @@
     </div>
   </div>
 
-  <!-- Áudio: coloque aerials.mpeg na mesma pasta que este HTML -->
   <audio id="audio" src="aerials.mpeg" preload="auto"></audio>
 
 <script>
-/* Poema (mantido igual ao que você pediu) */
 const partesPoema = [
 `Há dias em que o mundo pesa como concreto molhado,
 e eu juro que não sei se é o cansaço ou se é você.
@@ -299,7 +278,6 @@ que me queima mas também me ilumina.`,
 E você é uma delas.`
 ];
 
-/* Elementos e estado */
 const poemaEl = document.getElementById('poema');
 const ticket = document.getElementById('ticket');
 const brilho = document.getElementById('brilho');
@@ -309,116 +287,74 @@ const endcard = document.getElementById('endcard');
 let indice = -1;
 let firstClickDone = false;
 
-/* Ajusta o tamanho da fonte para caber no container */
 function fitTextToBox(el, options = {}) {
   const maxFont = options.maxFont || 20;
   const minFont = options.minFont || 10;
   const step = options.step || 0.5;
-
-  // inicial
   let fontSize = maxFont;
   el.style.fontSize = fontSize + "px";
-
-  // reduzir até caber (proteção com iterações)
   let iter = 0;
-  while (el.scrollHeight > el.clientHeight + 1 && fontSize > minFont && iter < 200) {
+  while(el.scrollHeight > el.clientHeight +1 && fontSize>minFont && iter<200){
     fontSize -= step;
-    el.style.fontSize = fontSize + "px";
+    el.style.fontSize = fontSize+"px";
     iter++;
   }
-  // se ainda passar, permitir pequeno scroll cortado (no entanto agora deve caber)
 }
 
-/* Atualiza poema e anima entrada */
-function mostrarParte(i) {
+function mostrarParte(i){
   poemaEl.classList.remove('show');
   poemaEl.classList.add('hidden');
-
-  setTimeout(() => {
+  setTimeout(()=>{
     poemaEl.textContent = partesPoema[i];
-    // reset font-size to max to recalc
-    poemaEl.style.fontSize = '';
-    // make sure to allow browser to render then fit
-    requestAnimationFrame(() => {
-      fitTextToBox(poemaEl, { maxFont: 20, minFont: 11, step: 0.4 });
+    poemaEl.style.fontSize='';
+    requestAnimationFrame(()=>{
+      fitTextToBox(poemaEl,{maxFont:20,minFont:11,step:0.4});
       poemaEl.classList.remove('hidden');
       poemaEl.classList.add('show');
     });
-  }, 260);
+  },260);
 }
 
-/* cria corações/brasas aleatórios */
-function spawnEmbers(count = 12){
+function spawnEmbers(count=12){
   for(let i=0;i<count;i++){
-    const e = document.createElement('div');
-    e.className = 'ember';
-    // use mix of heart+fire to match romance + System vibe
-    const icons = ['💖','🔥','💥','♥️'];
-    e.textContent = icons[Math.floor(Math.random()*icons.length)];
-    const x = (window.innerWidth/2) - 210 + Math.random()*420; // around ticket
-    e.style.left = (x + Math.random()*40 - 20) + 'px';
-    e.style.bottom = '80px';
-    e.style.fontSize = (14 + Math.random()*18) + 'px';
-    e.style.opacity = 0;
-    e.style.animationDelay = (Math.random()*0.6) + 's';
+    const e=document.createElement('div');
+    e.className='ember';
+    const icons=['💖','🔥','💥','♥️'];
+    e.textContent=icons[Math.floor(Math.random()*icons.length)];
+    const x=(window.innerWidth/2)-(ticket.offsetWidth/2)+Math.random()*ticket.offsetWidth;
+    e.style.left=(x+Math.random()*40-20)+'px';
+    e.style.bottom='80px';
+    e.style.fontSize=(14+Math.random()*18)+'px';
+    e.style.opacity=0;
+    e.style.animationDelay=(Math.random()*0.6)+'s';
     document.body.appendChild(e);
-    // remove after animation
-    setTimeout(()=> e.remove(), 2600 + Math.random()*400);
+    setTimeout(()=>e.remove(),2600+Math.random()*400);
   }
 }
 
-/* Ao clicar: avança poema, toca audio na primeira vez; ao fim faz rasgo + final */
-ticket.addEventListener('click', async (ev) => {
-  // play audio only once (gesture from click)
-  if (!firstClickDone) {
-    firstClickDone = true;
-    try {
-      // attempt to play - most browsers allow since click is user gesture
-      await audio.play();
-      audio.volume = 0.9;
-    } catch (err) {
-      // se navegador bloquear, apenas ignore silenciosamente
-      console.warn('audio play blocked', err);
-    }
-  }
-
+ticket.addEventListener('click',async ()=>{
+  if(!firstClickDone){firstClickDone=true; try{await audio.play(); audio.volume=0.9}catch(e){}}
   indice++;
-  if (indice < partesPoema.length) {
-    mostrarParte(indice);
-  } else {
-    // final: brilho + mensagem + embers + rasgar
+  if(indice<partesPoema.length){ mostrarParte(indice); }
+  else{
     brilho.classList.add('active');
     poemaEl.classList.remove('hidden');
     poemaEl.classList.add('show');
-    poemaEl.textContent = "Espero que goste do show.";
-    fitTextToBox(poemaEl, { maxFont:18, minFont:12, step:0.4 });
-
-    // spawn embers/hearts
+    poemaEl.textContent="Espero que goste do show.";
+    fitTextToBox(poemaEl,{maxFont:18,minFont:12,step:0.4});
     spawnEmbers(18);
-
-    // tocar um pouco mais alto (se possível)
-    try { audio.volume = 1.0; } catch(e){}
-
-    // depois de um intervalo, rasgar o ticket
-    setTimeout(()=> {
+    try{audio.volume=1.0}catch(e){}
+    setTimeout(()=>{
       ticket.classList.add('rasgando');
-      // mostra o endcard
-      setTimeout(()=> {
-        endcard.classList.add('show');
-      }, 900);
-      // remove ticket do fluxo visual depois da animação
-      setTimeout(()=> {
-        ticket.style.display = 'none';
-      }, 2200);
-    }, 1700);
+      setTimeout(()=>endcard.classList.add('show'),900);
+      setTimeout(()=>ticket.style.display='none',2200);
+    },1700);
   }
 });
 
-/* Inicial: mostrar instrução legível e ajustar fonte inicial */
-document.addEventListener('DOMContentLoaded', ()=> {
-  poemaEl.textContent = "Clique para começar";
-  fitTextToBox(poemaEl, { maxFont:20, minFont:11, step:0.4 });
-  // ensure audio is preloaded (file must be in same folder)
+document.addEventListener('DOMContentLoaded',()=>{
+  poemaEl.textContent="Clique para começar";
+  fitTextToBox(poemaEl,{maxFont:20,minFont:11,step:0.4});
   audio.load();
 });
 </script>
