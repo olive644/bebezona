@@ -1,0 +1,426 @@
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Para Raissa.</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#0b0b0d;
+    --bg-2:#19171a;
+    --accent:#d92b3a; /* vermelho System-ish */
+    --metal:#c3bfc3;
+    --text:#f3e9ea;
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Playfair Display", serif;
+    background: radial-gradient(1200px 600px at 10% 10%, #180010 0%, var(--bg-1) 25%, var(--bg-2) 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* Container */
+  .stage{
+    width: 860px;
+    max-width: calc(100% - 48px);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:28px;
+    flex-wrap:wrap;
+  }
+
+  /* Ticket */
+  .ticket {
+    position: relative;
+    width: 420px;
+    height: 210px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(217,43,58,0.12), rgba(0,0,0,0.4));
+    border: 2px solid rgba(217,43,58,0.9);
+    box-shadow:
+      0 8px 30px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.03);
+    padding: 18px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    overflow:hidden;
+    transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s;
+  }
+  .ticket:hover{ transform: translateY(-6px) scale(1.01); box-shadow: 0 18px 50px rgba(0,0,0,0.75); }
+
+  /* Torn perforation circles left/right */
+  .ticket::before, .ticket::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    width:28px;
+    height:58px;
+    background: radial-gradient(circle at center, transparent 55%, rgba(0,0,0,0.55) 56%);
+    border-radius:50%;
+    transform:translateY(-50%);
+    box-shadow: inset 0 0 0 3px rgba(0,0,0,0.35);
+    mix-blend-mode:multiply;
+  }
+  .ticket::before{ left:-14px; }
+  .ticket::after{ right:-14px; }
+
+  /* Header band */
+  .band {
+    position:absolute;
+    top:12px;
+    left:0;
+    right:0;
+    height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 18px;
+    pointer-events:none;
+  }
+  .band .left, .band .right {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--text);
+    font-family: "Oswald", sans-serif;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    font-size:12px;
+  }
+  .brand {
+    position:absolute;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    color:var(--metal);
+    font-family:"Oswald",sans-serif;
+    font-weight:700;
+    letter-spacing:3px;
+    font-size:18px;
+    mix-blend-mode:screen;
+    opacity:.95;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.6);
+    pointer-events:none;
+  }
+
+  /* Poem area */
+  .poema {
+    z-index:2;
+    width: calc(100% - 48px);
+    height: calc(100% - 84px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    color:var(--text);
+    padding:10px 12px;
+    box-sizing:border-box;
+    font-size:18px;
+    line-height:1.25;
+    white-space: pre-line;
+    overflow:hidden;
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .poema.show { opacity:1; transform:translateY(0); }
+  .poema.hidden { opacity:0; transform:translateY(8px); }
+
+  /* small label hint */
+  .hint {
+    position:absolute;
+    bottom:8px;
+    left:12px;
+    font-size:11px;
+    font-family: "Oswald", sans-serif;
+    color: rgba(255,255,255,0.7);
+    letter-spacing:1px;
+  }
+
+  /* brilho */
+  .brilho {
+    position:absolute;
+    inset:0;
+    border-radius:14px;
+    pointer-events:none;
+    background: radial-gradient(400px 120px at 30% 30%, rgba(255,255,255,0.06), transparent 20%);
+    mix-blend-mode: overlay;
+    opacity:0;
+    transition:opacity .8s;
+  }
+  .brilho.active { opacity:1; animation:glow 2s infinite alternate; }
+  @keyframes glow { from{ filter:blur(0px) } to{ filter:blur(3px) } }
+
+  /* Rasgo animation (ticket sobe/ruge e some) */
+  .rasgando {
+    animation: rasgar 2s cubic-bezier(.2,.9,.3,1) forwards;
+  }
+  @keyframes rasgar{
+    0%   { transform: translateY(0) rotate(0) scale(1); opacity:1; filter: drop-shadow(0 8px 18px rgba(0,0,0,0.6)); }
+    40%  { transform: translateY(-18px) rotate(-6deg) scale(1.02); }
+    70%  { transform: translateY(10vh) rotate(10deg) scale(0.95); opacity:0.9; }
+    100% { transform: translateY(140vh) rotate(18deg) scale(0.6); opacity:0; }
+  }
+
+  /* Hearts / embers */
+  .ember {
+    position:fixed;
+    pointer-events:none;
+    font-size:18px;
+    opacity:0;
+    transform: translateY(0) scale(0.9);
+    animation: emberUp 2.2s ease-out forwards;
+    text-shadow: 0 6px 18px rgba(200,20,30,0.45);
+  }
+  @keyframes emberUp{
+    0% { opacity:1; transform: translateY(0) scale(0.9); filter: blur(0px); }
+    50%{ transform: translateY(-70px) scale(1.1) rotate(-6deg); opacity:0.9; }
+    100%{ transform: translateY(-160px) scale(1.3) rotate(8deg); opacity:0; filter: blur(1px); }
+  }
+
+  /* Endcard after the ticket goes */
+  .endcard {
+    width:420px;
+    height:210px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text);
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    background: linear-gradient(160deg, rgba(0,0,0,0.65), rgba(217,43,58,0.06));
+    border:2px solid rgba(217,43,58,0.85);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+    opacity:0;
+    transform: scale(.98);
+    transition: opacity .6s ease, transform .6s ease;
+    flex-direction:column;
+    gap:10px;
+  }
+  .endcard.show { opacity:1; transform: scale(1); }
+
+  /* small responsive */
+  @media(max-width:500px){
+    .ticket, .endcard { width:320px; height:200px; }
+    .poema { font-size:14px; line-height:1.2; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="ticket" id="ticket" aria-label="- Oli">
+      <div class="band">
+        <div class="left">SHOW LIMITADO</div>
+        <div class="right">VIP: BEBEZONA</div>
+      </div>
+      <div class="brand">EDIÇÃO ESPECIAL</div>
+
+      <div class="poema hidden" id="poema">ABRA O INGRESSO.</div>
+      <div class="brilho" id="brilho"></div>
+      <div class="hint">AERIALS - SYSTEM OF A DOWN.</div>
+    </div>
+
+    <div class="endcard" id="endcard" role="status" aria-live="polite">
+      <div style="font-family: 'Oswald', sans-serif; font-size:20px; letter-spacing:2px; color:var(--metal)">SHOW PRIVADO</div>
+      <div style="max-width:320px; font-size:15px; color:var(--text)">
+        Com amor, feito somente e unicamente para vosmecê
+      </div>
+    </div>
+  </div>
+
+  <!-- Áudio: coloque aerials.mpeg na mesma pasta que este HTML -->
+  <audio id="audio" src="aerials.mpeg" preload="auto"></audio>
+
+<script>
+/* Poema (mantido igual ao que você pediu) */
+const partesPoema = [
+`Há dias em que o mundo pesa como concreto molhado,
+e eu juro que não sei se é o cansaço ou se é você.
+Porque há coisas que a gente sente antes de entender
+e há pessoas que doem mesmo quando não estão por perto.`,
+`Eu tento fingir normalidade,
+coloco o sorriso como quem coloca uma máscara de solda,
+pra conter o incêndio por dentro.
+Mas quando o vento sopra e o fogo lateja,
+é o seu nome que vem primeiro,
+como uma faísca no meio da noite.`,
+`Kafka dizia que “amar é um ato de fé em si mesmo”,
+e talvez por isso eu tenha medo.
+Porque eu me sei frágil,
+me sei humano demais pra suportar o peso do improvável.
+E ainda assim, continuo.
+Mesmo sem promessa.
+Mesmo sem certeza.
+Mesmo que você nunca perceba o que grita dentro do meu silêncio.`,
+`Eu te vejo em tudo o que resiste.
+No café frio esquecido na mesa,
+no poema que começa sobre o nada e termina com seu rosto,
+na rua que eu desvio só pra não cruzar a lembrança do seu perfume.`,
+`E às vezes penso: talvez eu seja só mais um corpo tentando ser casa,
+e você, o vento que insiste em entrar por todas as frestas.
+Eu tento construir muros,
+mas o amor, esse arquiteto teimoso, derruba tudo.
+E quando vejo, estou lá de novo:
+ajoelhado diante de uma parede rachada,
+pintando com as mãos sujas o retrato de um sonho.`,
+`Porque amar é também isso:
+erguer catedrais no deserto,
+sabendo que o sol vai desbotar os vitrais.
+Mas ainda assim, erguer.
+Mesmo sangrando os dedos.
+Mesmo sem ninguém pra ver.`,
+`E se me perguntassem por que,
+eu diria que talvez a dor de te querer
+seja mais suportável do que o vazio de não te sentir.`,
+`Você é o poema que Kafka nunca escreveu,
+porque o medo o fez recuar.
+Mas eu não.
+eu escolho o risco, o ridículo, o desespero bonito
+de me lançar inteiro nesse abismo com o seu nome nas paredes.`,
+`Talvez o mundo ria,
+talvez você nunca leia estas linhas,
+mas eu precisava dizer, ainda que disfarçado:
+que cada verso aqui é um jeito torto de te chamar.`,
+`E se um dia perguntarem o que me manteve vivo,
+eu direi:
+foi essa paixão malcurada, inconfessável,
+que me queima mas também me ilumina.`,
+`Porque há dores que valem a pena.
+E você é uma delas.`
+];
+
+/* Elementos e estado */
+const poemaEl = document.getElementById('poema');
+const ticket = document.getElementById('ticket');
+const brilho = document.getElementById('brilho');
+const audio = document.getElementById('audio');
+const endcard = document.getElementById('endcard');
+
+let indice = -1;
+let firstClickDone = false;
+
+/* Ajusta o tamanho da fonte para caber no container */
+function fitTextToBox(el, options = {}) {
+  const maxFont = options.maxFont || 20;
+  const minFont = options.minFont || 10;
+  const step = options.step || 0.5;
+
+  // inicial
+  let fontSize = maxFont;
+  el.style.fontSize = fontSize + "px";
+
+  // reduzir até caber (proteção com iterações)
+  let iter = 0;
+  while (el.scrollHeight > el.clientHeight + 1 && fontSize > minFont && iter < 200) {
+    fontSize -= step;
+    el.style.fontSize = fontSize + "px";
+    iter++;
+  }
+  // se ainda passar, permitir pequeno scroll cortado (no entanto agora deve caber)
+}
+
+/* Atualiza poema e anima entrada */
+function mostrarParte(i) {
+  poemaEl.classList.remove('show');
+  poemaEl.classList.add('hidden');
+
+  setTimeout(() => {
+    poemaEl.textContent = partesPoema[i];
+    // reset font-size to max to recalc
+    poemaEl.style.fontSize = '';
+    // make sure to allow browser to render then fit
+    requestAnimationFrame(() => {
+      fitTextToBox(poemaEl, { maxFont: 20, minFont: 11, step: 0.4 });
+      poemaEl.classList.remove('hidden');
+      poemaEl.classList.add('show');
+    });
+  }, 260);
+}
+
+/* cria corações/brasas aleatórios */
+function spawnEmbers(count = 12){
+  for(let i=0;i<count;i++){
+    const e = document.createElement('div');
+    e.className = 'ember';
+    // use mix of heart+fire to match romance + System vibe
+    const icons = ['💖','🔥','💥','♥️'];
+    e.textContent = icons[Math.floor(Math.random()*icons.length)];
+    const x = (window.innerWidth/2) - 210 + Math.random()*420; // around ticket
+    e.style.left = (x + Math.random()*40 - 20) + 'px';
+    e.style.bottom = '80px';
+    e.style.fontSize = (14 + Math.random()*18) + 'px';
+    e.style.opacity = 0;
+    e.style.animationDelay = (Math.random()*0.6) + 's';
+    document.body.appendChild(e);
+    // remove after animation
+    setTimeout(()=> e.remove(), 2600 + Math.random()*400);
+  }
+}
+
+/* Ao clicar: avança poema, toca audio na primeira vez; ao fim faz rasgo + final */
+ticket.addEventListener('click', async (ev) => {
+  // play audio only once (gesture from click)
+  if (!firstClickDone) {
+    firstClickDone = true;
+    try {
+      // attempt to play - most browsers allow since click is user gesture
+      await audio.play();
+      audio.volume = 0.9;
+    } catch (err) {
+      // se navegador bloquear, apenas ignore silenciosamente
+      console.warn('audio play blocked', err);
+    }
+  }
+
+  indice++;
+  if (indice < partesPoema.length) {
+    mostrarParte(indice);
+  } else {
+    // final: brilho + mensagem + embers + rasgar
+    brilho.classList.add('active');
+    poemaEl.classList.remove('hidden');
+    poemaEl.classList.add('show');
+    poemaEl.textContent = "Espero que goste do show.";
+    fitTextToBox(poemaEl, { maxFont:18, minFont:12, step:0.4 });
+
+    // spawn embers/hearts
+    spawnEmbers(18);
+
+    // tocar um pouco mais alto (se possível)
+    try { audio.volume = 1.0; } catch(e){}
+
+    // depois de um intervalo, rasgar o ticket
+    setTimeout(()=> {
+      ticket.classList.add('rasgando');
+      // mostra o endcard
+      setTimeout(()=> {
+        endcard.classList.add('show');
+      }, 900);
+      // remove ticket do fluxo visual depois da animação
+      setTimeout(()=> {
+        ticket.style.display = 'none';
+      }, 2200);
+    }, 1700);
+  }
+});
+
+/* Inicial: mostrar instrução legível e ajustar fonte inicial */
+document.addEventListener('DOMContentLoaded', ()=> {
+  poemaEl.textContent = "Clique para começar";
+  fitTextToBox(poemaEl, { maxFont:20, minFont:11, step:0.4 });
+  // ensure audio is preloaded (file must be in same folder)
+  audio.load();
+});
+</script>
+</body>
+</html>
